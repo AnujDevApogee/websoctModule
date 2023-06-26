@@ -2,13 +2,14 @@ package com.apogee.websocktlib.builder
 
 
 import com.apogee.websocktlib.Websocket
+import com.apogee.websocktlib.listner.WebSocketListener
 import com.apogee.websocktlib.utils.UtilsFiles
 import java.lang.StringBuilder
 
 class SocketBuilder {
     private var BASE_URL = StringBuilder()
 
-
+    private var callback: WebSocketListener? = null
 
     fun newBuild(): SocketBuilder {
         this.BASE_URL.clear()
@@ -40,8 +41,13 @@ class SocketBuilder {
         return this
     }
 
+    fun addCallback(callback: WebSocketListener): SocketBuilder {
+        this.callback=callback
+        return this
+    }
+
     fun build(): Websocket {
         UtilsFiles.createLogCat("TAG_INFO", "${this.BASE_URL}")
-        return Websocket(this.BASE_URL.toString())
+        return Websocket(this.BASE_URL.toString(),this.callback!!)
     }
 }

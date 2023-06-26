@@ -5,6 +5,8 @@ import com.apogee.websocktlib.WebsocketConnection
 import com.apogee.websocktlib.listner.ConnectionResponse
 import com.apogee.websocktlib.listner.WebSocketListener
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.runBlocking
@@ -15,23 +17,22 @@ import okhttp3.WebSocket
 
 class MyRepository(private val webSocketAddress: String) {
 
-    private lateinit var webSocketListener: okhttp3.WebSocketListener
     private val okHttpClient = OkHttpClient()
     private var webSocket: WebSocket? = null
 
-    val listenerForChange = flow {
-        webSocketListener = WebsocketConnection(object : WebSocketListener {
+    var listenerForChange: Flow<ConnectionResponse>?=null
+
+    private val webSocketListener = WebsocketConnection(
+        object : WebSocketListener {
             override fun webSocketListener(conn: ConnectionResponse) {
-                runBlocking {
-                    emit(conn)
-                }
+                    listenerForChange= flow {
+                        emit(conn)
+                    }
             }
         })
 
-    }.flowOn(Dispatchers.IO)
 
-
-    suspend fun createConnection() {
+    fun createConnection() {
         this.webSocket = okHttpClient.newWebSocket(createRequest(), webSocketListener)
     }
 
@@ -41,12 +42,16 @@ class MyRepository(private val webSocketAddress: String) {
             .build()
     }
 
-    suspend fun disconnect() {
+    fun rendRequest(request: String) {
+        this.webSocket?.send(request)
+    }
+
+    fun disconnect() {
         this.webSocket?.close(1001, "Connection Closed")
     }
 
 
-    suspend fun shutdown() {
+    fun shutdown() {
         okHttpClient.dispatcher.executorService.shutdown()
     }
 }
