@@ -1,6 +1,6 @@
 package com.apogee.websocktlib.listner
 
-import okhttp3.Response
+
 
 sealed class ConnectionResponse {
 
