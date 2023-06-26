@@ -15,6 +15,7 @@ import com.apogee.websocktlib.listner.ConnectionResponse
 import com.apogee.websocktlib.listner.WebSocketListener
 import com.apogee.websocktlib.utils.UtilsFiles
 import kotlinx.coroutines.launch
+import java.lang.Exception
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -25,9 +26,13 @@ class MainActivity : AppCompatActivity() {
             when (conn) {
                 is ConnectionResponse.OnClosed -> {
                     UtilsFiles.createLogCat("MAIN_Response", " onClosed => ${conn.code} and ${conn.reason}")
+                    binding.msgDisplay.append("Disconnected")
+                    binding.msgDisplay.append("\n")
                 }
 
                 is ConnectionResponse.OnFailure -> {
+                    binding.msgDisplay.append(conn.throwable.localizedMessage)
+                    binding.msgDisplay.append("\n")
                     UtilsFiles.createLogCat(
                         "MAIN_Response",
                         "OnFailure -> ${conn.throwable.localizedMessage} "
@@ -35,13 +40,26 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 is ConnectionResponse.OnMessage -> {
-                    UtilsFiles.createLogCat(
-                        "MAIN_Response",
-                        " MESSAGE-> ${conn.response}"
-                    )
+                    try {
+                        val obj=UtilsFiles.fromJson<GetResponse>(conn.response)
+                        binding.msgDisplay.append("${if (obj.user == "apogee1") "You" else obj.user}:${obj.msg}")
+                        binding.msgDisplay.append("\n")
+                        UtilsFiles.createLogCat(
+                            "MAIN_Response",
+                            " MESSAGE-> ${conn.response}"
+                        )
+                    }catch (e:Exception){
+                        UtilsFiles.createLogCat(
+                            "MAIN_Response",
+                            " MESSAGE-> ${conn.response}"
+                        )
+                    }
+
                 }
 
                 is ConnectionResponse.OnOpen -> {
+                    binding.msgDisplay.append(conn.response)
+                    binding.msgDisplay.append("\n")
                     UtilsFiles.createLogCat(
                         "MAIN_Response",
                         " OnOpen -> ${conn.response}"
