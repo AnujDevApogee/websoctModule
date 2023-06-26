@@ -2,15 +2,13 @@ package com.apogee.websocktlib
 
 import com.apogee.websocktlib.listner.WebSocketListener
 import com.apogee.websocktlib.repo.MyRepository
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.runBlocking
 
 
 class Websocket(
     webSocketUrl: String,
-    private val callback: WebSocketListener
+    callback: WebSocketListener
 ) {
-    private val repo = MyRepository(webSocketUrl)
+    private val repo = MyRepository(webSocketUrl,callback)
 
     companion object {
         private var INSTANCE: Websocket? = null
@@ -22,13 +20,6 @@ class Websocket(
         }
     }
 
-    init {
-        runBlocking {
-            repo.listenerForChange?.collectLatest {
-                callback.webSocketListener(it)
-            }
-        }
-    }
 
 
     suspend fun establishConnection() {
