@@ -4,6 +4,7 @@ package com.apogee.websocktlib.builder
 import com.apogee.websocktlib.Websocket
 import com.apogee.websocktlib.listner.WebSocketListener
 import com.apogee.websocktlib.utils.UtilsFiles
+import java.lang.IllegalArgumentException
 import java.lang.StringBuilder
 
 class SocketBuilder {
@@ -42,12 +43,15 @@ class SocketBuilder {
     }
 
     fun addCallback(callback: WebSocketListener): SocketBuilder {
-        this.callback=callback
+        this.callback = callback
         return this
     }
 
     fun build(): Websocket {
         UtilsFiles.createLogCat("TAG_INFO", "${this.BASE_URL}")
-        return Websocket(this.BASE_URL.toString(),this.callback!!)
+        if (this.callback==null){
+            throw  IllegalArgumentException("No CallBack Listener Provide")
+        }
+            return Websocket(this.BASE_URL.toString(), this.callback!!)
     }
 }

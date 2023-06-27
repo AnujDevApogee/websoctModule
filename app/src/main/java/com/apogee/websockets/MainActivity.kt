@@ -124,4 +124,13 @@ class MainActivity : AppCompatActivity() {
  */
 
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED){
+                webSocketClient.shutDown()
+            }
+        }
+    }
 }
