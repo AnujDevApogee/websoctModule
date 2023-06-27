@@ -12,7 +12,7 @@ class SocketBuilder {
 
     private var callback: WebSocketListener? = null
 
-    fun newBuild(): SocketBuilder {
+    fun newBuilder(): SocketBuilder {
         this.BASE_URL.clear()
         this.BASE_URL.append(UtilsFiles.WebSocketHeader)
         return this

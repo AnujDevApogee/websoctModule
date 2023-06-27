@@ -25,7 +25,10 @@ class MainActivity : AppCompatActivity() {
         override fun webSocketListener(conn: ConnectionResponse) {
             when (conn) {
                 is ConnectionResponse.OnDisconnect -> {
-                    UtilsFiles.createLogCat("MAIN_Response", " onClosed => ${conn.code} and ${conn.reason}")
+                    UtilsFiles.createLogCat(
+                        "MAIN_Response",
+                        " onClosed => ${conn.code} and ${conn.reason}"
+                    )
                     binding.msgDisplay.append("Disconnected")
                     binding.msgDisplay.append("\n")
                 }
@@ -41,14 +44,14 @@ class MainActivity : AppCompatActivity() {
 
                 is ConnectionResponse.OnResponse -> {
                     try {
-                        val obj=UtilsFiles.fromJson<GetResponse>(conn.response)
+                        val obj = UtilsFiles.fromJson<GetResponse>(conn.response)
                         binding.msgDisplay.append("${if (obj.user == BASE_NAME) "You" else obj.user}:${obj.msg}")
                         binding.msgDisplay.append("\n")
                         UtilsFiles.createLogCat(
                             "MAIN_Response",
                             " MESSAGE-> ${conn.response}"
                         )
-                    }catch (e:Exception){
+                    } catch (e: Exception) {
                         UtilsFiles.createLogCat(
                             "MAIN_Response",
                             " MESSAGE-> ${conn.response}"
@@ -67,7 +70,10 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 is ConnectionResponse.OnNetworkConnection -> {
-                    UtilsFiles.createLogCat("MAIN_Response","${conn.response} and ${conn.isConnected}")
+                    UtilsFiles.createLogCat(
+                        "MAIN_Response",
+                        "${conn.response} and ${conn.isConnected}"
+                    )
                 }
 
                 is ConnectionResponse.OnRequestError -> {
@@ -77,17 +83,19 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
-companion object{
-    const val BASE_NAME="JBP"
-    const val CONN_POINT="apogee1"
-}
+
+    companion object {
+        const val BASE_NAME = "JBP"
+        const val CONN_POINT = "apogee1"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.msgDisplay.movementMethod = ScrollingMovementMethod()
         webSocketClient = SocketBuilder()
-            .newBuild()
+            .newBuilder()
             .addCallback(callBack)
             .addIpAddress("192.168.1.37")
             .addPort("8080")
@@ -123,7 +131,7 @@ companion object{
             lifecycleScope.launch {
                 repeatOnLifecycle(Lifecycle.State.STARTED) {
                     webSocketClient.onRequestSent(UtilsFiles.toJson(obj)).also {
-                        if (it){
+                        if (it) {
                             binding.msgDisplay.append("${if (obj.user == BASE_NAME) "You" else obj.user}:${obj.msg}")
                             binding.msgDisplay.append("\n")
                         }
@@ -145,7 +153,7 @@ companion object{
     override fun onDestroy() {
         super.onDestroy()
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED){
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 webSocketClient.shutDown()
             }
         }
