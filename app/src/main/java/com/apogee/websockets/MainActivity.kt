@@ -24,14 +24,14 @@ class MainActivity : AppCompatActivity() {
     private val callBack = object : WebSocketListener {
         override fun webSocketListener(conn: ConnectionResponse) {
             when (conn) {
-                is ConnectionResponse.OnClosed -> {
+                is ConnectionResponse.OnDisconnect -> {
                     UtilsFiles.createLogCat("MAIN_Response", " onClosed => ${conn.code} and ${conn.reason}")
                     binding.msgDisplay.append("Disconnected")
                     binding.msgDisplay.append("\n")
                 }
 
-                is ConnectionResponse.OnFailure -> {
-                    binding.msgDisplay.append(conn.throwable.localizedMessage)
+                is ConnectionResponse.OnResponseError -> {
+                    binding.msgDisplay.append(conn.throwable.message)
                     binding.msgDisplay.append("\n")
                     UtilsFiles.createLogCat(
                         "MAIN_Response",
@@ -39,10 +39,10 @@ class MainActivity : AppCompatActivity() {
                     )
                 }
 
-                is ConnectionResponse.OnMessage -> {
+                is ConnectionResponse.OnResponse -> {
                     try {
                         val obj=UtilsFiles.fromJson<GetResponse>(conn.response)
-                        binding.msgDisplay.append("${if (obj.user == "apogee1") "You" else obj.user}:${obj.msg}")
+                        binding.msgDisplay.append("${if (obj.user == BASE_NAME) "You" else obj.user}:${obj.msg}")
                         binding.msgDisplay.append("\n")
                         UtilsFiles.createLogCat(
                             "MAIN_Response",
@@ -57,7 +57,7 @@ class MainActivity : AppCompatActivity() {
 
                 }
 
-                is ConnectionResponse.OnOpen -> {
+                is ConnectionResponse.OnConnected -> {
                     binding.msgDisplay.append(conn.response)
                     binding.msgDisplay.append("\n")
                     UtilsFiles.createLogCat(
@@ -65,11 +65,22 @@ class MainActivity : AppCompatActivity() {
                         " OnOpen -> ${conn.response}"
                     )
                 }
+
+                is ConnectionResponse.OnNetworkConnection -> {
+                    UtilsFiles.createLogCat("MAIN_Response","${conn.response} and ${conn.isConnected}")
+                }
+
+                is ConnectionResponse.OnRequestError -> {
+                    UtilsFiles.createLogCat("MAIN_Response", conn.errorCause)
+                }
             }
         }
 
     }
-
+companion object{
+    const val BASE_NAME="JBP"
+    const val CONN_POINT="apogee1"
+}
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -78,16 +89,17 @@ class MainActivity : AppCompatActivity() {
         webSocketClient = SocketBuilder()
             .newBuild()
             .addCallback(callBack)
-            .addIpAddress("192.168.1.17")
+            .addIpAddress("192.168.1.37")
             .addPort("8080")
-            .addBaseOrRover("apogee1")
+            .addBaseOrRover(BASE_NAME)
+            .addMountPoint(CONN_POINT)
             .build()
 
 
         binding.connectionBtn.setOnClickListener {
             lifecycleScope.launch {
                 repeatOnLifecycle(Lifecycle.State.STARTED) {
-                    webSocketClient.establishConnection()
+                    webSocketClient.establishConnection(this@MainActivity)
                 }
             }
         }
@@ -107,10 +119,15 @@ class MainActivity : AppCompatActivity() {
                 showToast("cannot be empty!!")
                 return@setOnClickListener
             }
-            val obj = GetResponse("apogee1", txt, "")
+            val obj = GetResponse(BASE_NAME, txt, CONN_POINT)
             lifecycleScope.launch {
                 repeatOnLifecycle(Lifecycle.State.STARTED) {
-                    webSocketClient.sendRequest(UtilsFiles.toJson(obj))
+                    webSocketClient.onRequestSent(UtilsFiles.toJson(obj)).also {
+                        if (it){
+                            binding.msgDisplay.append("${if (obj.user == BASE_NAME) "You" else obj.user}:${obj.msg}")
+                            binding.msgDisplay.append("\n")
+                        }
+                    }
                 }
             }
         }

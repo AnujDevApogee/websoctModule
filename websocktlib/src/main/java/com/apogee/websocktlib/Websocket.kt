@@ -1,14 +1,19 @@
 package com.apogee.websocktlib
 
+import android.content.Context
+import com.apogee.websocktlib.listner.ConnectionResponse
 import com.apogee.websocktlib.listner.WebSocketListener
 import com.apogee.websocktlib.repo.MyRepository
+import com.apogee.websocktlib.utils.UtilsFiles
+import com.apogee.websocktlib.utils.isNetworkAvailable
 
 
+@Suppress("RedundantSuspendModifier")
 class Websocket(
     webSocketUrl: String,
-    callback: WebSocketListener
+    private val callback: WebSocketListener
 ) {
-    private val repo = MyRepository(webSocketUrl,callback)
+    private val repo = MyRepository(webSocketUrl, callback)
 
     companion object {
         private var INSTANCE: Websocket? = null
@@ -21,8 +26,17 @@ class Websocket(
     }
 
 
-
-    suspend fun establishConnection() {
+    suspend fun establishConnection(context: Context) {
+        UtilsFiles.createLogCat("NETWORK_CONNECT","${context.isNetworkAvailable()}")
+        if (!context.isNetworkAvailable()) {
+            callback.webSocketListener(
+                ConnectionResponse.OnNetworkConnection(
+                    "No Internet connection found!!",
+                    isConnected = context.isNetworkAvailable()
+                )
+            )
+            return
+        }
         repo.createConnection()
     }
 
@@ -34,8 +48,13 @@ class Websocket(
         repo.shutdown()
     }
 
-    suspend fun sendRequest(msg: String) {
+    suspend fun onRequestSent(msg: String): Boolean {
+        if (UtilsFiles.checkValue(msg)) {
+            callback.webSocketListener(ConnectionResponse.OnRequestError("Invalid Request Body"))
+            return false
+        }
         repo.rendRequest(msg)
+        return true
     }
 
 }

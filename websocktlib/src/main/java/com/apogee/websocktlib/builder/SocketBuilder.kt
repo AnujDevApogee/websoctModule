@@ -37,8 +37,10 @@ class SocketBuilder {
 
 
     fun addMountPoint(rover: String): SocketBuilder {
-        this.BASE_URL.append("&")
-        this.BASE_URL.append(rover)
+        if (!UtilsFiles.checkValue(rover)) {
+            this.BASE_URL.append("&")
+            this.BASE_URL.append(rover)
+        }
         return this
     }
 

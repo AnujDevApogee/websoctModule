@@ -1,15 +1,16 @@
 package com.apogee.websocktlib.listner
 
-import okhttp3.Response
 
 sealed class ConnectionResponse {
 
-    class OnOpen(val response: String) : ConnectionResponse()
+    class OnConnected(val response: String) : ConnectionResponse()
 
-    class OnClosed(val code: Int, val reason: String) : ConnectionResponse()
+    class OnDisconnect(val code: Int, val reason: String) : ConnectionResponse()
 
-    class OnFailure(val throwable: Throwable) : ConnectionResponse()
+    class OnResponseError(val throwable: Throwable) : ConnectionResponse()
 
-    class OnMessage(val response: String) : ConnectionResponse()
+    class OnResponse(val response: String) : ConnectionResponse()
+    class OnNetworkConnection(val response: String,val isConnected:Boolean) : ConnectionResponse()
+    class OnRequestError(val errorCause:String) : ConnectionResponse()
 
 }

@@ -32,6 +32,7 @@ class MyRepository(
 
 
     fun createConnection() {
+
         this.webSocket = okHttpClient.newWebSocket(createRequest(), webSocketListener)
     }
 

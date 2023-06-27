@@ -18,6 +18,9 @@ object UtilsFiles {
     inline fun <reified T> fromJson(str: String): T {
         return Gson().fromJson(str, T::class.java)
     }
+    fun checkValue(str: String?): Boolean {
+        return str.isNullOrEmpty() || str.isBlank() || str=="null"
+    }
 }
 
 
